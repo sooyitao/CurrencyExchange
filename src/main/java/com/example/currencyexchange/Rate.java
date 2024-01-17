@@ -1,42 +1,37 @@
 package com.example.currencyexchange;
 
-import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
-import org.json.JSONObject;
+import com.google.gson.*;
 
 public class Rate {
 
-    public double[] getRate() {
+    public double[] getRate() throws IOException {
         double[] exchangeRate = new double[0];
-        String apiKey = "48d009c6817a497aa1e95070217e329a";
+        String apiKey = "f913b6adec4ef061c68a6a47";
         String baseCurrency = "SGD"; // Change this to your desired base currency
+        String url_str = "https://v6.exchangerate-api.com/v6/f913b6adec4ef061c68a6a47/latest/SGD";
 
-        try {
-            URL url = new URL("https://open.er-api.com/v6/latest/" + baseCurrency);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
+        // Making Request
+        URL url = new URL(url_str);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.connect();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
+        // Convert to JSON
+        JsonParser jp = new JsonParser();
+        JsonElement root = jp.parse(new InputStreamReader((InputStream) request.getContent()));
+        JsonObject jsonobj = root.getAsJsonObject();
+        JsonObject rates = jsonobj.getAsJsonObject("conversion_rates");
 
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
+        // Convert rates to double array
+        exchangeRate = new double[]{rates.get("USD").getAsDouble(), rates.get("EUR").getAsDouble(), rates.get("JPY").getAsDouble(),
+                rates.get("GBP").getAsDouble(), rates.get("AUD").getAsDouble(), rates.get("CAD").getAsDouble(),
+                rates.get("CHF").getAsDouble(), rates.get("CNY").getAsDouble()};
 
-            reader.close();
-            connection.disconnect();
-
-            // Parse JSON response and extract the rate for the target currency
-            JSONObject jsonResponse = new JSONObject(response.toString());
-            JSONObject rates = jsonResponse.getJSONObject("rates");
-            exchangeRate = new double[] {rates.getDouble("USD"), rates.getDouble("EUR"), rates.getDouble("JPY"), rates.getDouble("GBP"),
-                    rates.getDouble("AUD"), rates.getDouble("CAD"), rates.getDouble("CHF"), rates.getDouble("CNY")};
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         return exchangeRate;
     }

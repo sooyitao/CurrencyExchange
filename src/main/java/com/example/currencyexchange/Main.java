@@ -13,6 +13,8 @@ import javafx.scene.text.Text;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
 
+import java.io.IOException;
+
 public class Main extends Application{
     double[] exchangeRate = {0.7741, 0.6843, 109.9219, 0.5868, 1.1352, 1.0059, 0.6424, 5.3005};
     @Override
@@ -60,7 +62,11 @@ public class Main extends Application{
             public void handle(ActionEvent actionEvent) {
                 Rate rates = new Rate();
                 Convert convert1 = new Convert(Double.parseDouble(inputSGD.getText()));
-                convert1.setExchangeRate(rates.getRate());
+                try {
+                    convert1.setExchangeRate(rates.getRate());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 Double[] convertor = convert1.convertor();
                 outputUSD.setText(String.format("%.2f",convertor[0]));
                 outputEUR.setText(String.format("%.2f",convertor[1]));
